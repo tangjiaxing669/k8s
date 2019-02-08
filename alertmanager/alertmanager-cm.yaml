@@ -10,7 +10,7 @@ data:
       smtp_smarthost: 'smtp.gmail.com:587'
       smtp_from: 'soul1433223@gmail.com'
       smtp_auth_username: 'soul1433223@gmail.com'
-      smtp_auth_password: 'Qaz!@#123'
+      smtp_auth_password: '******123'
       smtp_require_tls: true
     route:
       group_by: ['alertname', 'cluster']
