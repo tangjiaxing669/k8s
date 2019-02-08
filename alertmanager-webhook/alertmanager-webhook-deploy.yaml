@@ -1,0 +1,49 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: alertmanager-webhook
+  namespace: kube-system
+spec:
+  template:
+    metadata:
+      labels:
+        app: alertmanager-webhook
+    spec:
+      imagePullSecrets:
+        - name: registry-pull-secret
+      containers:
+      - name: alertmanager-webhook
+        image: harbor.example.com/bob/alertmanager-webhook:v1.1
+        imagePullPolicy: IfNotPresent
+        command: ["python", "/scripts/tg.py"]
+        ports:
+        - containerPort: 5000
+          name: http
+        volumeMounts:
+        - mountPath: "/scripts"
+          name: alert-webhook-script
+        resources:
+          requests:
+            cpu: 50m
+            memory: 100Mi
+          limits:
+            cpu: 50m
+            memory: 100Mi
+      volumes:
+      - name: alert-webhook-script
+        configMap:
+          name: alert-webhook-script
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager-webhook
+  namespace: kube-system
+spec:
+  selector:
+    app: alertmanager-webhook
+  ports:
+  - name: webhook
+    port: 5000
+    targetPort: http

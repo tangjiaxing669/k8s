@@ -1,0 +1,14 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata: 
+  name: alertmanager-ingress
+  namespace: kube-system
+spec:
+  rules:
+  - host: alertmanager.example.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: prometheus
+          servicePort: 9093
