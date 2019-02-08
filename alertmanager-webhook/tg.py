@@ -44,8 +44,8 @@ def pasermsg(msg):
 
 
 def sendmsgtotg(status, alertname, device, fstype, instance, job, description, summary):
-    tg_token = '723806405:AAF_x8-giga4HPntMHQCFOepA8D5pnXyiWE'
-    chatid = '-369453715'
+    tg_token = '723806405:AAF_x8-***************'
+    chatid = '-***************'
     request_url = 'https://api.telegram.org/bot{0}/sendMessage'.format(tg_token)
     msg = '''
     *{status}*
@@ -56,7 +56,7 @@ def sendmsgtotg(status, alertname, device, fstype, instance, job, description, s
     job = {job}
     description = {description}
     summary = {summary}
-    [BOB Alert Platform.](https://www.bobvip1.com)
+    [BOB Alert Platform.](https://www.**.com)
     '''.format(status=status, alertname=alertname, device=device, fstype=fstype, instance=instance, job=job, description=description, summary=summary)
     payload = {'chat_id': chatid, 'text': msg, 'parse_mode': 'markdown'}
     req = requests.post(request_url, data=payload)
