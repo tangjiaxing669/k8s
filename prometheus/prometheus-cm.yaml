@@ -128,7 +128,7 @@ data:
 
   rules.yml: |
     groups:
-    - name: monitoring
+    - name: kube-system
       rules:
       - alert: NodeFilesystemUsage
         expr: (node_filesystem_size{device="rootfs"} - node_filesystem_free{device="rootfs"}) / node_filesystem_size{device="rootfs"} * 100 > 80
@@ -157,7 +157,7 @@ data:
         annotations:
           summary: "{{$labels.instance}}: High CPU usage detected"
           description: "{{$labels.instance}}: CPU usage is above 80% (current value is: {{ $value }}"
-      - alert: InstanceStateDown
+      - alert: InstanceDown
         expr: up == 0
         for: 2m
         labels:
@@ -166,3 +166,83 @@ data:
         annotations:
           summary: "Instance {{ $labels.instance }} down"
           description : "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 5 minutes."
+      - alert: PrometheusConfigReloadFailed
+        annotations:
+          description: Reloading Prometheus' configuration has failed for {{$labels.namespace}}/{{$labels.pod}}
+          summary: Reloading Promehteus' configuration failed
+        expr: prometheus_config_last_reload_successful == 0
+        for: 2m
+        labels:
+          filesystem: node
+      - alert: PrometheusNotificationQueueRunningFull
+        annotations:
+          description: Prometheus' alert notification queue is running full for {{$labels.namespace}}/{{$labels.pod}}
+          summary: Prometheus' alert notification queue is running full
+        expr: predict_linear(prometheus_notifications_queue_length[5m], 60 * 30) > prometheus_notifications_queue_capacity
+        for: 2m
+        labels:
+          filesystem: node
+      - alert: PrometheusErrorSendingAlerts
+        annotations:
+          description: Errors while sending alerts from Prometheus {{$labels.namespace}}/{{$labels.pod}} to Alertmanager {{$labels.Alertmanager}}
+          summary: Errors while sending alert from Prometheus
+        expr: rate(prometheus_notifications_errors_total[5m]) / rate(prometheus_notifications_sent_total[5m]) > 0.01
+        for: 2m
+        labels:
+          filesystem: node
+      - alert: PrometheusErrorSendingAlerts
+        annotations:
+          description: Errors while sending alerts from Prometheus {{$labels.namespace}}/{{$labels.pod}} to Alertmanager {{$labels.Alertmanager}}
+          summary: Errors while sending alerts from Prometheus
+        expr: rate(prometheus_notifications_errors_total[5m]) / rate(prometheus_notifications_sent_total[5m]) > 0.03
+        for: 2m
+        labels:
+          filesystem: node
+      - alert: PrometheusNotConnectedToAlertmanagers
+        annotations:
+          description: Prometheus {{ $labels.namespace }}/{{ $labels.pod}} is not connected to any Alertmanagers
+          summary: Prometheus is not connected to any Alertmanagers
+        expr: prometheus_notifications_alertmanagers_discovered < 1
+        for: 2m
+        labels:
+          filesystem: node
+      - alert: PrometheusTSDBReloadsFailing
+        annotations:
+          description: '{{$labels.job}} at {{$labels.instance}} had {{$value | humanize}} reload failures over the last four hours.'
+          summary: Prometheus has issues reloading data blocks from disk
+        expr: increase(prometheus_tsdb_reloads_failures_total[2h]) > 0
+        for: 12h
+        labels:
+          filesystem: node
+      - alert: PrometheusTSDBCompactionsFailing
+        annotations:
+          description: '{{$labels.job}} at {{$labels.instance}} had {{$value | humanize}} compaction failures over the last four hours.'
+          summary: Prometheus has issues compacting sample blocks
+        expr: increase(prometheus_tsdb_compactions_failed_total[2h]) > 0
+        for: 12h
+        labels:
+          filesystem: node
+      - alert: PrometheusTSDBWALCorruptions
+        annotations:
+          description: '{{$labels.job}} at {{$labels.instance}} has a corrupted write-ahead log (WAL).'
+          summary: Prometheus write-ahead log is corrupted
+        expr: tsdb_wal_corruptions_total > 0
+        for: 4h
+        labels:
+          filesystem: node
+      - alert: PrometheusNotIngestingSamples
+        annotations:
+          description: Prometheus {{ $labels.namespace }}/{{ $labels.pod}} isn't ingesting samples.
+          summary: Prometheus isn't ingesting samples
+        expr: rate(prometheus_tsdb_head_samples_appended_total[5m]) <= 0
+        for: 2m
+        labels:
+          filesystem: node
+      - alert: PrometheusTargetScrapesDuplicate
+        annotations:
+          description: '{{$labels.namespace}}/{{$labels.pod}} has many samples rejected due to duplicate timestamps but different values'
+          summary: Prometheus has many samples rejected
+        expr: increase(prometheus_target_scrapes_sample_duplicate_timestamp_total[5m]) > 0
+        for: 2m
+        labels:
+          filesystem: node
